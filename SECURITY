@@ -1,0 +1,67 @@
+# Security Policy
+
+The CISCODE team takes security seriously
+
+---
+
+## Supported Versions
+
+Only the latest released minor version receives security updates.
+
+| Version  | Supported |
+| -------- | --------- |
+| >= 1.1.x | ✅ Yes    |
+| < 1.1.x  | ❌ No     |
+
+---
+
+## Reporting a Vulnerability
+
+⚠️ **Do NOT open a public GitHub issue for security vulnerabilities.**
+
+If you discover a security issue, please report it privately.
+
+### Contact
+
+📧 **info@ciscod.com**
+
+### What to Include
+
+Please provide as much detail as possible:
+
+- A clear description of the vulnerability
+- Steps to reproduce
+- Potential impact
+- Affected versions
+- Any relevant logs or screenshots (if safe to share)
+
+---
+
+## Response Process
+
+- We aim to acknowledge reports within **72 hours**
+- We will investigate and assess the issue
+- A fix will be prepared and released as soon as possible
+- Credit will be given where appropriate (unless you prefer anonymity)
+
+---
+
+## Scope
+
+Security issues include, but are not limited to:
+
+- Integrity issues
+- Authentication or authorization bypass
+- Sensitive data exposure
+
+Out of scope:
+
+- Host application misconfiguration
+- Issues caused by incorrect environment setup
+
+---
+
+## Disclosure
+
+Please allow us reasonable time to investigate and fix issues before any public disclosure.
+Responsible disclosure helps protect users and integrators.

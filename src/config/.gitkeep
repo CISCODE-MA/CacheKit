@@ -1,0 +1,20 @@
+# Config Directory
+
+Place configuration files here.
+
+## Example:
+
+```typescript
+// jwt.config.ts
+export const jwtConfig = {
+  secret: process.env.JWT_SECRET || 'default-secret',
+  expiresIn: process.env.JWT_EXPIRES_IN || '1h',
+};
+
+// database.config.ts
+export const databaseConfig = {
+  host: process.env.DB_HOST || 'localhost',
+  port: parseInt(process.env.DB_PORT || '5432', 10),
+  database: process.env.DB_NAME || 'mydb',
+};
+```

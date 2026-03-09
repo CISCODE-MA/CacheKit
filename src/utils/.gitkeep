@@ -1,0 +1,26 @@
+# Utils Directory
+
+Place utility functions here.
+
+## Example:
+
+```typescript
+// validation.utils.ts
+export function isValidEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+// date.utils.ts
+export function formatDate(date: Date): string {
+  return date.toISOString().split('T')[0];
+}
+
+// string.utils.ts
+export function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/\s+/g, '-');
+}
+```
