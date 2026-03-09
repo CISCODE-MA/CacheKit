@@ -1,4 +1,4 @@
-# Testing Instructions - NestJS API Module
+# Testing Instructions - CacheKit
 
 > **Last Updated**: February 2026  
 > **Testing Framework**: Jest or Vitest  

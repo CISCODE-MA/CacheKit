@@ -1,14 +1,14 @@
-# Copilot Instructions - NestJS Developer Kit (Template)
+# Copilot Instructions - CacheKit
 
-> **Purpose**: Template for creating reusable NestJS module packages with best practices, standardized structure, and AI-friendly development workflow.
+> **Purpose**: CacheKit provides reusable caching services and integrations for NestJS applications.
 
 ---
 
-## 🎯 Template Overview
+## 🎯 Module Overview
 
-**Package**: Template for `@ciscode/*` NestJS modules  
-**Type**: Backend NestJS Module Template  
-**Purpose**: Starting point for creating authentication, database, logging, and other NestJS modules
+**Package**: `@ciscode/cachekit`  
+**Type**: Backend NestJS Module Library  
+**Purpose**: Reusable cache utilities, adapters, and integrations for backend services
 
 ### This Template Provides:
 

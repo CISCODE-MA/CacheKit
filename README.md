@@ -1,6 +1,6 @@
-# NestJS Developer Kit (Template)
+# CacheKit
 
-A professional template for creating reusable NestJS npm packages with best practices, standardized structure, and AI-friendly development workflow.
+CacheKit provides reusable caching utilities and integrations for NestJS services.
 
 ## 🎯 What You Get
 
@@ -16,9 +16,9 @@ A professional template for creating reusable NestJS npm packages with best prac
 ## 📦 Installation
 
 ```bash
-# Clone this template
-git clone https://github.com/CISCODE-MA/NestJs-DeveloperKit.git my-module
-cd my-module
+# Clone CacheKit
+git clone https://github.com/CISCODE-MA/CacheKit.git cachekit
+cd cachekit
 
 # Install dependencies
 npm install

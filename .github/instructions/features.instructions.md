@@ -1,4 +1,4 @@
-# Features Instructions - NestJS API Module
+# Features Instructions - CacheKit
 
 > **Last Updated**: February 2026
 
@@ -51,7 +51,7 @@
 
 ### 2️⃣ Implementation Phase
 
-- [ ] Create feature branch: `feature/API-MODULE-*`
+- [ ] Create feature branch: `feature/CACHEKIT-*`
 - [ ] Create DTO with validation
 - [ ] Create database entity
 - [ ] Create service with business logic

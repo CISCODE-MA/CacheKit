@@ -1,4 +1,4 @@
-# Bugfix Instructions - NestJS API Module
+# Bugfix Instructions - CacheKit
 
 > **Last Updated**: February 2026
 

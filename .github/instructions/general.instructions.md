@@ -1,4 +1,4 @@
-# General Instructions - NestJS API Module
+# General Instructions - CacheKit
 
 > **Last Updated**: February 2026
 
@@ -8,7 +8,7 @@
 
 ### What is this module?
 
-This is a production-ready NestJS module providing reusable backend services, controllers, and data models for modern applications.
+CacheKit is a production-ready NestJS module providing reusable caching services, adapters, and utilities for backend applications.
 
 **Type**: NestJS Module Library  
 **Framework**: NestJS 10+, TypeScript 5+  

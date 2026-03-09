@@ -1,15 +1,15 @@
-# Copilot Instructions - NestJS API Module
+# Copilot Instructions - CacheKit
 
-> **Purpose**: Development guidelines for NestJS backend modules - reusable, well-structured API services.
+> **Purpose**: Development guidelines for CacheKit, a reusable NestJS caching module.
 
 ---
 
 ## 🎯 Module Overview
 
-**Package**: `@ciscode/api-module` (example)  
+**Package**: `@ciscode/cachekit`  
 **Type**: NestJS Module Library  
 **Framework**: NestJS 10+, Node 20+, TypeScript 5+  
-**Purpose**: Reusable, production-ready NestJS modules for common backend patterns
+**Purpose**: Reusable, production-ready caching utilities and integrations
 
 ### Typical Module Responsibilities:
 

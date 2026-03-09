@@ -1,14 +1,14 @@
 {
-  "name": "@ciscode/nestjs-developerkit",
+  "name": "@ciscode/cachekit",
   "version": "1.0.0",
-  "description": "Template for NestJS developer kits (npm packages).",
+  "description": "CacheKit backend module for reusable caching utilities and integrations.",
   "author": "CisCode",
   "publishConfig": {
     "access": "public"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/CISCODE-MA/"
+    "url": "git+https://github.com/CISCODE-MA/CacheKit.git"
   },
   "license": "MIT",
   "files": [
