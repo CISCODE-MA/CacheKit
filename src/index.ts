@@ -46,6 +46,26 @@ export { ExampleData, ExampleParam } from "./decorators/example.decorator";
 // export type { YourCustomType } from './types';
 
 // ============================================================================
+// PORTS (Abstractions / Interfaces)
+// ============================================================================
+// Export the ICacheStore interface so consumers can type their own adapters
+// or declare injection tokens without depending on a concrete implementation.
+export type { ICacheStore } from "./ports/cache-store.port";
+
+// ============================================================================
+// ADAPTERS (Concrete Cache Store Implementations)
+// ============================================================================
+// Both adapters implement ICacheStore — consumers choose the one that fits their stack.
+
+// Redis-backed adapter — requires the "ioredis" peer dependency.
+export { RedisCacheStore } from "./adapters/redis-cache-store.adapter";
+export type { RedisCacheStoreOptions } from "./adapters/redis-cache-store.adapter";
+
+// In-memory adapter — zero external dependencies; ideal for tests and local dev.
+export { InMemoryCacheStore } from "./adapters/in-memory-cache-store.adapter";
+export type { CacheEntry } from "./adapters/in-memory-cache-store.adapter";
+
+// ============================================================================
 // ❌ NEVER EXPORT (Internal Implementation)
 // ============================================================================
 // These should NEVER be exported from a module:

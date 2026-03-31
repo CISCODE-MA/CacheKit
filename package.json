@@ -51,7 +51,8 @@
   },
   "dependencies": {
     "class-transformer": "^0.5.1",
-    "class-validator": "^0.14.1"
+    "class-validator": "^0.14.1",
+    "ioredis": "^5.10.1"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.7",
