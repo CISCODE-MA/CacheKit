@@ -16,11 +16,18 @@
  *  - CacheModule              → the NestJS dynamic module class
  */
 
-import { DynamicModule, Module, Provider, Type } from "@nestjs/common";
-
 import { InMemoryCacheStore } from "@adapters/in-memory-cache-store.adapter";
 import { RedisCacheStore } from "@adapters/redis-cache-store.adapter";
 import type { RedisCacheStoreOptions } from "@adapters/redis-cache-store.adapter";
+import {
+  DynamicModule,
+  type InjectionToken,
+  Module,
+  type ModuleMetadata,
+  type OptionalFactoryDependency,
+  Provider,
+  Type,
+} from "@nestjs/common";
 import type { ICacheStore } from "@ports/cache-store.port";
 
 import { CACHE_MODULE_OPTIONS, CACHE_STORE } from "./constants";
@@ -70,10 +77,10 @@ export type CacheModuleOptionsFactory = () => Promise<CacheModuleOptions> | Cach
  */
 export interface CacheModuleAsyncOptions {
   /** Providers whose tokens are passed as arguments to useFactory. */
-  inject?: any[];
+  inject?: Array<InjectionToken | OptionalFactoryDependency>;
 
   /** Inline factory that resolves to CacheModuleOptions. */
-  useFactory?: (...args: any[]) => Promise<CacheModuleOptions> | CacheModuleOptions;
+  useFactory?: (...args: unknown[]) => Promise<CacheModuleOptions> | CacheModuleOptions;
 
   /**
    * Class that the module will instantiate to obtain the options.
@@ -88,7 +95,7 @@ export interface CacheModuleAsyncOptions {
   useExisting?: Type<{ createCacheOptions(): Promise<CacheModuleOptions> | CacheModuleOptions }>;
 
   /** Additional NestJS modules to import into the async provider scope. */
-  imports?: any[];
+  imports?: ModuleMetadata["imports"];
 }
 
 // ---------------------------------------------------------------------------

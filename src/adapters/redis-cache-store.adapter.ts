@@ -16,9 +16,8 @@
  *  - RedisCacheStore         → the concrete Redis adapter class
  */
 
-import Redis from "ioredis";
-
 import type { ICacheStore } from "@ports/cache-store.port";
+import Redis from "ioredis";
 
 // ---------------------------------------------------------------------------
 // Configuration
