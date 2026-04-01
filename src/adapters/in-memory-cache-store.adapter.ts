@@ -95,7 +95,9 @@ export class InMemoryCacheStore implements ICacheStore {
     // Multiply seconds by 1 000 to convert to milliseconds for Date.now() comparison.
     // null signals "no expiry" so the entry lives until deleted or clear() is called.
     const expiresAt =
-      ttlSeconds !== undefined && ttlSeconds > 0 ? Date.now() + ttlSeconds * 1_000 : null;
+      ttlSeconds !== undefined && ttlSeconds > 0
+        ? Date.now() + ttlSeconds * 1_000
+        : null;
 
     // Serialize the value to a JSON string before storing to match Redis adapter behaviour
     this.store.set(key, {
