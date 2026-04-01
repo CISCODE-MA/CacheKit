@@ -16,9 +16,8 @@
  *  - RedisCacheStore         → the concrete Redis adapter class
  */
 
-import Redis from "ioredis";
-
 import type { ICacheStore } from "@ports/cache-store.port";
+import Redis from "ioredis";
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -70,8 +69,7 @@ export class RedisCacheStore implements ICacheStore {
   constructor(options: RedisCacheStoreOptions) {
     // Accept either an existing ioredis client or a plain connection URL string.
     // When a URL is provided we create a new dedicated client instance.
-    this.redis =
-      typeof options.client === "string" ? new Redis(options.client) : options.client;
+    this.redis = typeof options.client === "string" ? new Redis(options.client) : options.client;
 
     // Fall back to an empty string so buildKey() can skip the prefix logic.
     this.keyPrefix = options.keyPrefix ?? "";

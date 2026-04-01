@@ -10,14 +10,24 @@ import "reflect-metadata";
 // ============================================================================
 // MODULE
 // ============================================================================
-export { ExampleKitModule } from "./example-kit.module";
-export type { ExampleKitOptions, ExampleKitAsyncOptions } from "./example-kit.module";
+// CacheModule — the main dynamic module consumers import into their AppModule.
+// Supports both synchronous (register) and asynchronous (registerAsync) setup.
+export { CacheModule } from "./cache-kit.module";
+export type { CacheModuleOptions, CacheModuleAsyncOptions } from "./cache-kit.module";
+
+// ============================================================================
+// DI TOKENS
+// ============================================================================
+// Exported so consumers can inject the raw ICacheStore directly if needed,
+// or reference CACHE_STORE in their own provider definitions.
+export { CACHE_STORE, CACHE_MODULE_OPTIONS } from "./constants";
 
 // ============================================================================
 // SERVICES (Main API)
 // ============================================================================
-// Export services that consumers will interact with
-export { ExampleService } from "./services/example.service";
+// CacheService is the primary interface consumers interact with.
+// Inject it anywhere via constructor injection.
+export { CacheService } from "./services/cache.service";
 
 // ============================================================================
 // DTOs (Public Contracts)
