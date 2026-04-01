@@ -59,9 +59,7 @@ export interface CacheModuleOptions {
  * Factory function type used by registerAsync's useFactory.
  * May return the options synchronously or as a Promise.
  */
-export type CacheModuleOptionsFactory = () =>
-  | Promise<CacheModuleOptions>
-  | CacheModuleOptions;
+export type CacheModuleOptionsFactory = () => Promise<CacheModuleOptions> | CacheModuleOptions;
 
 /**
  * Asynchronous configuration options for CacheModule.registerAsync().
@@ -111,7 +109,7 @@ function createStoreFromOptions(options: CacheModuleOptions): ICacheStore {
     if (!options.redis) {
       throw new Error(
         '[CacheModule] store is "redis" but no redis options were provided. ' +
-          'Pass a `redis` field to CacheModule.register() or CacheModule.registerAsync().',
+          "Pass a `redis` field to CacheModule.register() or CacheModule.registerAsync().",
       );
     }
     // Delegate all Redis connection and key-prefix logic to the adapter
@@ -163,8 +161,9 @@ function createAsyncProviders(options: CacheModuleAsyncOptions): Provider[] {
     {
       // Call createCacheOptions() on the factory instance to get the options
       provide: CACHE_MODULE_OPTIONS,
-      useFactory: (factory: { createCacheOptions(): Promise<CacheModuleOptions> | CacheModuleOptions }) =>
-        factory.createCacheOptions(),
+      useFactory: (factory: {
+        createCacheOptions(): Promise<CacheModuleOptions> | CacheModuleOptions;
+      }) => factory.createCacheOptions(),
       inject: [factoryClass],
     },
     {
@@ -252,10 +251,7 @@ export class CacheModule {
       module: CacheModule,
       // Import any modules required by the factory (e.g. ConfigModule)
       imports: options.imports ?? [],
-      providers: [
-        ...asyncProviders,
-        CacheService,
-      ],
+      providers: [...asyncProviders, CacheService],
       exports: [CacheService, CACHE_STORE],
     };
   }
