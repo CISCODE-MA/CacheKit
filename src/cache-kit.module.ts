@@ -24,6 +24,8 @@ import {
   type InjectionToken,
   Module,
   type ModuleMetadata,
+  OnModuleInit,
+  Optional,
   type OptionalFactoryDependency,
   Provider,
   Type,
@@ -32,6 +34,7 @@ import type { ICacheStore } from "@ports/cache-store.port";
 
 import { CACHE_MODULE_OPTIONS, CACHE_STORE } from "./constants";
 import { CacheService } from "./services/cache.service";
+import { CacheServiceRef } from "./utils/cache-service-ref";
 
 // ---------------------------------------------------------------------------
 // Configuration interfaces
@@ -210,7 +213,28 @@ function createAsyncProviders(options: CacheModuleAsyncOptions): Provider[] {
  * ```
  */
 @Module({})
-export class CacheModule {
+export class CacheModule implements OnModuleInit {
+  constructor(
+    /**
+     * Injected by NestJS from the providers registered in register() / registerAsync().
+     * @Optional() guards against the rare case where the module class is instantiated
+     * without CacheService being available (e.g. partial test setups).
+     */
+    @Optional() private readonly cacheService?: CacheService,
+  ) {}
+
+  /**
+   * Runs after all providers in this module have been resolved.
+   * Stores the CacheService reference so @Cacheable and @CacheEvict can access
+   * it at method-call time without going through constructor injection.
+   */
+  onModuleInit(): void {
+    // Only populate the ref when CacheService is available
+    if (this.cacheService) {
+      CacheServiceRef.set(this.cacheService);
+    }
+  }
+
   /**
    * Register the module with synchronous, inline configuration.
    *
