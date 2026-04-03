@@ -3,6 +3,8 @@ import type { Config } from "jest";
 const config: Config = {
   testEnvironment: "node",
   clearMocks: true,
+  // forceExit closes open ioredis handles left by ioredis-mock after tests finish
+  forceExit: true,
   testMatch: ["<rootDir>/test/**/*.test.ts", "<rootDir>/src/**/*.spec.ts"],
   transform: {
     "^.+\\.ts$": ["ts-jest", { tsconfig: "tsconfig.json" }],
@@ -27,10 +29,10 @@ const config: Config = {
   coverageDirectory: "coverage",
   coverageThreshold: {
     global: {
-      branches: 80,
-      functions: 80,
-      lines: 80,
-      statements: 80,
+      branches: 85,
+      functions: 85,
+      lines: 85,
+      statements: 85,
     },
   },
   moduleNameMapper: {
