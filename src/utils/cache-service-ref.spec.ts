@@ -13,6 +13,7 @@ import { InMemoryCacheStore } from "@adapters/in-memory-cache-store.adapter";
 
 import type { CacheModuleOptions } from "../cache-kit.module";
 import { CacheService } from "../services/cache.service";
+
 import { CacheServiceRef } from "./cache-service-ref";
 
 // ---------------------------------------------------------------------------
@@ -44,9 +45,9 @@ describe("CacheServiceRef", () => {
     // via the accessor itself using an indirect reset.
     // Since we cannot set null directly, we rely on a fresh jest module reset.
     jest.resetModules();
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { CacheServiceRef: fresh } =
-      require("./cache-service-ref") as typeof import("./cache-service-ref");
+    const { CacheServiceRef: fresh } = jest.requireActual<{
+      CacheServiceRef: typeof CacheServiceRef;
+    }>("./cache-service-ref");
 
     // get() on an uninitialised ref must throw with a helpful message
     expect(() => fresh.get()).toThrow(/CacheService is not initialised/);
