@@ -50,6 +50,17 @@ export { ExampleGuard } from "./guards/example.guard";
 export { ExampleData, ExampleParam } from "./decorators/example.decorator";
 
 // ============================================================================
+// DECORATORS
+// ============================================================================
+// Method decorators for automatic caching and cache invalidation.
+// Apply these to service methods — no manual CacheService injection needed.
+
+// Cache-aside decorator: returns cached value or calls the method and stores the result
+export { Cacheable } from "./decorators/cacheable.decorator";
+// Cache eviction decorator: deletes the cache entry after the method executes
+export { CacheEvict } from "./decorators/cache-evict.decorator";
+
+// ============================================================================
 // TYPES & INTERFACES (For TypeScript Typing)
 // ============================================================================
 // Export types and interfaces for TypeScript consumers
