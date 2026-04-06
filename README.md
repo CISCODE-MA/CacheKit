@@ -134,14 +134,14 @@ export class ProductsService {
 
 ### Full method reference
 
-| Method | Signature | Description |
-|--------|-----------|-------------|
-| `get` | `get<T>(key): Promise<T \| null>` | Retrieve a value; returns `null` on miss or expiry |
-| `set` | `set<T>(key, value, ttl?): Promise<void>` | Store a value; `ttl` overrides module default |
-| `delete` | `delete(key): Promise<void>` | Remove a single entry |
-| `clear` | `clear(): Promise<void>` | Remove all entries (scoped to key prefix for Redis) |
-| `has` | `has(key): Promise<boolean>` | Return `true` if key exists and has not expired |
-| `wrap` | `wrap<T>(key, fn, ttl?): Promise<T>` | Return cached value or call `fn`, cache result, return it |
+| Method   | Signature                                 | Description                                               |
+| -------- | ----------------------------------------- | --------------------------------------------------------- |
+| `get`    | `get<T>(key): Promise<T \| null>`         | Retrieve a value; returns `null` on miss or expiry        |
+| `set`    | `set<T>(key, value, ttl?): Promise<void>` | Store a value; `ttl` overrides module default             |
+| `delete` | `delete(key): Promise<void>`              | Remove a single entry                                     |
+| `clear`  | `clear(): Promise<void>`                  | Remove all entries (scoped to key prefix for Redis)       |
+| `has`    | `has(key): Promise<boolean>`              | Return `true` if key exists and has not expired           |
+| `wrap`   | `wrap<T>(key, fn, ttl?): Promise<T>`      | Return cached value or call `fn`, cache result, return it |
 
 ---
 
@@ -217,18 +217,18 @@ export class UserService {
 
 ### `CacheModuleOptions` (synchronous)
 
-| Field | Type | Required | Default | Description |
-|-------|------|----------|---------|-------------|
-| `store` | `"memory" \| "redis"` | ✅ | — | Backing store adapter |
-| `ttl` | `number` | ❌ | `undefined` | Default TTL in seconds for all `set()` calls |
-| `redis` | `RedisCacheStoreOptions` | When `store: "redis"` | — | Redis connection config |
+| Field   | Type                     | Required              | Default     | Description                                  |
+| ------- | ------------------------ | --------------------- | ----------- | -------------------------------------------- |
+| `store` | `"memory" \| "redis"`    | ✅                    | —           | Backing store adapter                        |
+| `ttl`   | `number`                 | ❌                    | `undefined` | Default TTL in seconds for all `set()` calls |
+| `redis` | `RedisCacheStoreOptions` | When `store: "redis"` | —           | Redis connection config                      |
 
 ### `RedisCacheStoreOptions`
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `client` | `string \| Redis` | ✅ | Redis URL (`redis://…`) or existing ioredis instance |
-| `keyPrefix` | `string` | ❌ | Prefix for all keys, e.g. `"myapp:"` |
+| Field       | Type              | Required | Description                                          |
+| ----------- | ----------------- | -------- | ---------------------------------------------------- |
+| `client`    | `string \| Redis` | ✅       | Redis URL (`redis://…`) or existing ioredis instance |
+| `keyPrefix` | `string`          | ❌       | Prefix for all keys, e.g. `"myapp:"`                 |
 
 ---
 
