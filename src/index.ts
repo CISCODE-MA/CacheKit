@@ -30,26 +30,6 @@ export { CACHE_STORE, CACHE_MODULE_OPTIONS } from "./constants";
 export { CacheService } from "./services/cache.service";
 
 // ============================================================================
-// DTOs (Public Contracts)
-// ============================================================================
-// DTOs are the public interface for your API
-// Consumers depend on these, so they must be stable
-export { CreateExampleDto } from "./dto/create-example.dto";
-export { UpdateExampleDto } from "./dto/update-example.dto";
-
-// ============================================================================
-// GUARDS (For Route Protection)
-// ============================================================================
-// Export guards so consumers can use them in their apps
-export { ExampleGuard } from "./guards/example.guard";
-
-// ============================================================================
-// DECORATORS (For Dependency Injection & Metadata)
-// ============================================================================
-// Export decorators for use in consumer controllers/services
-export { ExampleData, ExampleParam } from "./decorators/example.decorator";
-
-// ============================================================================
 // DECORATORS
 // ============================================================================
 // Method decorators for automatic caching and cache invalidation.

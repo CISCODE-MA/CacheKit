@@ -21,6 +21,37 @@
 import { CacheServiceRef } from "@utils/cache-service-ref";
 import { resolveCacheKey } from "@utils/resolve-cache-key.util";
 
+// ---------------------------------------------------------------------------
+// Internal cache envelope
+// ---------------------------------------------------------------------------
+
+/**
+ * Thin wrapper stored under every cache key written by @Cacheable.
+ *
+ * Why this is needed:
+ *  ICacheStore.get() returns null for both a cache miss AND a stored null value.
+ *  Without an envelope, a method that legitimately returns null would never
+ *  benefit from caching — every call would look like a miss and re-execute
+ *  the original method.
+ *
+ *  By wrapping the return value in `{ __v: result }` before writing, and
+ *  unwrapping after reading, the decorator can tell "cached null" (envelope
+ *  present, __v is null) from "cache miss" (get() returned null itself).
+ *
+ * This type is intentionally NOT exported — it is an internal implementation
+ * detail. Consumers should not read @Cacheable keys via CacheService.get()
+ * directly, as they would receive the raw envelope object.
+ */
+interface CacheEnvelope {
+  /** The actual cached return value — may be null or undefined */
+  readonly __v: unknown;
+}
+
+/** Type guard — true when `v` is a CacheEnvelope written by @Cacheable */
+function isEnvelope(v: unknown): v is CacheEnvelope {
+  return typeof v === "object" && v !== null && "__v" in v;
+}
+
 /**
  * Cache-aside method decorator.
  *
@@ -46,6 +77,12 @@ import { resolveCacheKey } from "@utils/resolve-cache-key.util";
  * @Cacheable("config")
  * async getConfig(): Promise<Config> { ... }
  * ```
+ *
+ * @remarks
+ * Methods that return `null` are correctly cached. The decorator uses an
+ * internal envelope so a cached `null` is distinguishable from a cache miss.
+ * Do **not** read keys written by `@Cacheable` via `CacheService.get()` directly
+ * — you will receive the raw envelope object `{ __v: value }` instead of the value.
  */
 export function Cacheable(key: string, ttlSeconds?: number): MethodDecorator {
   return (
@@ -65,17 +102,21 @@ export function Cacheable(key: string, ttlSeconds?: number): MethodDecorator {
       const resolvedKey = resolveCacheKey(key, args);
 
       // ── Cache hit ──────────────────────────────────────────────────────
-      // Return the stored value immediately without calling the original method
-      const cached = await cacheService.get<unknown>(resolvedKey);
-      if (cached !== null) return cached;
+      // Read the envelope. null from get() means cache miss; a present envelope
+      // means hit — even when the stored return value was null or undefined.
+      const envelope = await cacheService.get<CacheEnvelope>(resolvedKey);
+      if (envelope !== null && isEnvelope(envelope)) {
+        return envelope.__v;
+      }
 
       // ── Cache miss ─────────────────────────────────────────────────────
       // Call the original method; wrap in Promise.resolve() to handle both
       // sync methods (returns a plain value) and async methods (returns a Promise)
       const result = await Promise.resolve(originalMethod.apply(this, args));
 
-      // Persist the result under the resolved key for future calls
-      await cacheService.set(resolvedKey, result, ttlSeconds);
+      // Wrap in an envelope before storing so null/undefined returns are
+      // preserved and distinguishable from a cache miss on the next call.
+      await cacheService.set<CacheEnvelope>(resolvedKey, { __v: result }, ttlSeconds);
 
       return result;
     };

@@ -8,7 +8,8 @@
  *  - A parse failure (malformed JSON) returns null instead of throwing.
  *  - An optional key prefix namespaces every key so multiple adapters can
  *    share the same Redis database without colliding.
- *  - clear() only removes keys that belong to this adapter's prefix;
+ *  - clear() only removes keys that belong to this adapter's prefix via
+ *    cursor-based SCAN (non-blocking, safe for large key sets);
  *    without a prefix it flushes the entire Redis database (FLUSHDB).
  *
  * Exports:
@@ -137,15 +138,24 @@ export class RedisCacheStore implements ICacheStore {
   /** {@inheritDoc ICacheStore.clear} */
   async clear(): Promise<void> {
     if (this.keyPrefix) {
-      // Prefix mode: collect only the keys that belong to this adapter's namespace.
-      // NOTE: KEYS is O(N) and blocks Redis — acceptable for dev / low-traffic scenarios.
-      // Consider SCAN-based iteration for high-traffic production deployments.
-      const keys = await this.redis.keys(`${this.keyPrefix}:*`);
+      // Use cursor-based SCAN instead of KEYS to avoid blocking Redis while
+      // iterating large key sets. SCAN is O(1) per call (amortised O(N) total)
+      // and yields control back to Redis between iterations.
+      const pattern = `${this.keyPrefix}:*`;
+      let cursor = "0";
 
-      // Only call DEL when there is at least one matching key
-      if (keys.length > 0) {
-        await this.redis.del(...keys);
-      }
+      do {
+        // Each SCAN call returns [nextCursor, matchedKeys].
+        // COUNT is a hint to Redis — it may return more or fewer per call.
+        const [nextCursor, keys] = await this.redis.scan(cursor, "MATCH", pattern, "COUNT", 100);
+        cursor = nextCursor;
+
+        // Delete the batch found in this iteration immediately to keep memory
+        // usage flat regardless of total key count.
+        if (keys.length > 0) {
+          await this.redis.del(...keys);
+        }
+      } while (cursor !== "0");
     } else {
       // No prefix — flush every key in the currently selected Redis database
       await this.redis.flushdb();
