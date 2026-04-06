@@ -1,102 +1,277 @@
-# CacheKit
+# @ciscode/cachekit
 
-CacheKit provides reusable caching utilities and integrations for NestJS services.
+> Production-ready NestJS caching module with pluggable store adapters, a
+> cache-aside service, and method-level `@Cacheable` / `@CacheEvict` decorators.
 
-## 🎯 What You Get
-
-- ✅ **CSR Architecture** - Controller-Service-Repository pattern
-- ✅ **TypeScript** - Strict mode with path aliases
-- ✅ **Testing** - Jest with 80% coverage threshold
-- ✅ **Code Quality** - ESLint + Prettier + Husky
-- ✅ **Versioning** - Changesets for semantic versioning
-- ✅ **CI/CD** - GitHub Actions workflows
-- ✅ **Documentation** - Complete Copilot instructions
-- ✅ **Examples** - Full working examples for all layers
+---
 
 ## 📦 Installation
 
 ```bash
-# Clone CacheKit
-git clone https://github.com/CISCODE-MA/CacheKit.git cachekit
-cd cachekit
-
-# Install dependencies
-npm install
-
-# Start developing
-npm run build
-npm test
+npm install @ciscode/cachekit
 ```
+
+### Peer dependencies
+
+Install the peers that match what your app already uses:
+
+```bash
+# Always required
+npm install @nestjs/common @nestjs/core
+
+# Required when using the Redis store
+npm install ioredis
+```
+
+---
+
+## 🚀 Quick Start
+
+### 1. Register with an in-memory store (zero config)
+
+```typescript
+import { Module } from "@nestjs/common";
+import { CacheModule } from "@ciscode/cachekit";
+
+@Module({
+  imports: [
+    CacheModule.register({
+      store: "memory",
+      ttl: 60, // default TTL in seconds (optional)
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+### 2. Register with a Redis store
+
+```typescript
+import { Module } from "@nestjs/common";
+import { CacheModule } from "@ciscode/cachekit";
+
+@Module({
+  imports: [
+    CacheModule.register({
+      store: "redis",
+      ttl: 300,
+      redis: {
+        client: "redis://localhost:6379",
+        keyPrefix: "myapp:",
+      },
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+### 3. Register asynchronously (with ConfigService)
+
+```typescript
+import { Module } from "@nestjs/common";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { CacheModule } from "@ciscode/cachekit";
+
+@Module({
+  imports: [
+    ConfigModule.forRoot(),
+    CacheModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (cfg: ConfigService) => ({
+        store: cfg.get<"redis" | "memory">("CACHE_STORE", "memory"),
+        ttl: cfg.get<number>("CACHE_TTL", 60),
+        redis: {
+          client: cfg.get<string>("REDIS_URL", "redis://localhost:6379"),
+          keyPrefix: cfg.get<string>("CACHE_PREFIX", "app:"),
+        },
+      }),
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+---
+
+## 🔧 CacheService API
+
+Inject `CacheService` wherever you need direct cache access:
+
+```typescript
+import { Injectable } from "@nestjs/common";
+import { CacheService } from "@ciscode/cachekit";
+
+@Injectable()
+export class ProductsService {
+  constructor(private readonly cache: CacheService) {}
+
+  async getProduct(id: string) {
+    // Manual cache-aside pattern
+    const cached = await this.cache.get<Product>(`product:${id}`);
+    if (cached) return cached;
+
+    const product = await this.db.findProduct(id);
+    await this.cache.set(`product:${id}`, product, 120); // TTL = 120 s
+    return product;
+  }
+
+  async deleteProduct(id: string) {
+    await this.db.deleteProduct(id);
+    await this.cache.delete(`product:${id}`);
+  }
+
+  // wrap() — cache-aside in one call
+  async getAll(): Promise<Product[]> {
+    return this.cache.wrap(
+      "products:all",
+      () => this.db.findAllProducts(),
+      300, // TTL = 300 s
+    );
+  }
+}
+```
+
+### Full method reference
+
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `get` | `get<T>(key): Promise<T \| null>` | Retrieve a value; returns `null` on miss or expiry |
+| `set` | `set<T>(key, value, ttl?): Promise<void>` | Store a value; `ttl` overrides module default |
+| `delete` | `delete(key): Promise<void>` | Remove a single entry |
+| `clear` | `clear(): Promise<void>` | Remove all entries (scoped to key prefix for Redis) |
+| `has` | `has(key): Promise<boolean>` | Return `true` if key exists and has not expired |
+| `wrap` | `wrap<T>(key, fn, ttl?): Promise<T>` | Return cached value or call `fn`, cache result, return it |
+
+---
+
+## 🎯 Method Decorators
+
+### `@Cacheable(key, ttl?)`
+
+Cache the return value of a method automatically (cache-aside). The decorated
+method is only called on a cache miss; subsequent calls return the stored value.
+
+**Key templates** — use `{0}`, `{1}`, … to interpolate method arguments:
+
+```typescript
+import { Injectable } from "@nestjs/common";
+import { Cacheable } from "@ciscode/cachekit";
+
+@Injectable()
+export class UserService {
+  // Static key — same result cached for all calls
+  @Cacheable("users:all", 300)
+  async findAll(): Promise<User[]> {
+    return this.db.findAllUsers();
+  }
+
+  // Dynamic key — "user:42" for userId = 42
+  @Cacheable("user:{0}", 120)
+  async findById(userId: number): Promise<User> {
+    return this.db.findUser(userId);
+  }
+
+  // Multi-argument key — "org:5:user:99"
+  @Cacheable("org:{0}:user:{1}", 60)
+  async findByOrg(orgId: number, userId: number): Promise<User> {
+    return this.db.findUserInOrg(orgId, userId);
+  }
+}
+```
+
+### `@CacheEvict(key)`
+
+Evict (delete) a cache entry after the decorated method completes successfully.
+If the method throws, the entry is **not** evicted.
+
+```typescript
+import { Injectable } from "@nestjs/common";
+import { CacheEvict } from "@ciscode/cachekit";
+
+@Injectable()
+export class UserService {
+  // Evict "users:all" whenever a user is created
+  @CacheEvict("users:all")
+  async createUser(dto: CreateUserDto): Promise<User> {
+    return this.db.createUser(dto);
+  }
+
+  // Evict the specific user entry — "user:42" for userId = 42
+  @CacheEvict("user:{0}")
+  async updateUser(userId: number, dto: UpdateUserDto): Promise<User> {
+    return this.db.updateUser(userId, dto);
+  }
+
+  // Evict on delete
+  @CacheEvict("user:{0}")
+  async deleteUser(userId: number): Promise<void> {
+    await this.db.deleteUser(userId);
+  }
+}
+```
+
+---
+
+## ⚙️ Configuration reference
+
+### `CacheModuleOptions` (synchronous)
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `store` | `"memory" \| "redis"` | ✅ | — | Backing store adapter |
+| `ttl` | `number` | ❌ | `undefined` | Default TTL in seconds for all `set()` calls |
+| `redis` | `RedisCacheStoreOptions` | When `store: "redis"` | — | Redis connection config |
+
+### `RedisCacheStoreOptions`
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `client` | `string \| Redis` | ✅ | Redis URL (`redis://…`) or existing ioredis instance |
+| `keyPrefix` | `string` | ❌ | Prefix for all keys, e.g. `"myapp:"` |
+
+---
 
 ## 🏗️ Architecture
 
 ```
 src/
-  ├── index.ts                    # PUBLIC API exports
-  ├── {module-name}.module.ts     # NestJS module definition
+  ├── index.ts                                  # Public API exports
+  ├── cache-kit.module.ts                       # CacheModule (dynamic NestJS module)
+  ├── constants.ts                              # DI tokens: CACHE_STORE, CACHE_MODULE_OPTIONS
   │
-  ├── controllers/                # HTTP Layer
-  │   └── example.controller.ts
+  ├── ports/
+  │   └── cache-store.port.ts                  # ICacheStore interface
   │
-  ├── services/                   # Business Logic
-  │   └── example.service.ts
+  ├── adapters/
+  │   ├── in-memory-cache-store.adapter.ts     # Map-backed adapter (no deps)
+  │   └── redis-cache-store.adapter.ts         # ioredis-backed adapter
   │
-  ├── entities/                   # Domain Models
-  │   └── example.entity.ts
+  ├── services/
+  │   └── cache.service.ts                     # CacheService (public API)
   │
-  ├── repositories/               # Data Access
-  │   └── example.repository.ts
+  ├── decorators/
+  │   ├── cacheable.decorator.ts               # @Cacheable
+  │   └── cache-evict.decorator.ts             # @CacheEvict
   │
-  ├── guards/                     # Auth Guards
-  │   └── example.guard.ts
-  │
-  ├── decorators/                 # Custom Decorators
-  │   └── example.decorator.ts
-  │
-  ├── dto/                        # Data Transfer Objects
-  │   ├── create-example.dto.ts
-  │   └── update-example.dto.ts
-  │
-  ├── filters/                    # Exception Filters
-  ├── middleware/                 # Middleware
-  ├── config/                     # Configuration
-  └── utils/                      # Utilities
+  └── utils/
+      ├── cache-service-ref.ts                 # Singleton holder for decorators
+      └── resolve-cache-key.util.ts            # {0}, {1} key template resolver
 ```
 
-## 🚀 Usage
+---
 
-### 1. Customize Your Module
+## 🔐 Security notes
 
-```typescript
-// src/example-kit.module.ts
-import { Module, DynamicModule } from "@nestjs/common";
-import { ExampleService } from "@services/example.service";
+- Never pass credentials directly in source code — use environment variables or `ConfigService`
+- The Redis `keyPrefix` isolates cache entries from other apps sharing the same instance
+- `clear()` without a key prefix will `FLUSHDB` the entire Redis database — use prefixes in production
 
-@Module({})
-export class ExampleKitModule {
-  static forRoot(options: ExampleKitOptions): DynamicModule {
-    return {
-      module: ExampleKitModule,
-      providers: [ExampleService],
-      exports: [ExampleService],
-    };
-  }
-}
-```
+---
 
-### 2. Create Services
+## 📄 License
 
-```typescript
-// src/services/example.service.ts
-import { Injectable } from "@nestjs/common";
-
-@Injectable()
-export class ExampleService {
-  async doSomething(data: string): Promise<string> {
-    return `Processed: ${data}`;
-  }
-}
-```
+MIT © [CisCode](https://github.com/CISCODE-MA)
 
 ### 3. Define DTOs
 
