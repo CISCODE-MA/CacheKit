@@ -5,12 +5,12 @@
  *
  * Uses ioredis-mock so no real Redis server is required. The mock exposes the
  * same API surface as real ioredis, meaning all RedisCacheStore code paths
- * (get, set+EX, del, keys+del, flushdb) are exercised against in-memory state.
+ * (get, set+EX, del, scan+del, flushdb) are exercised against in-memory state.
  *
  * Tests cover:
  *  - Full ICacheStore contract: get, set (with and without TTL), delete, clear
  *  - Key prefix namespacing: keys are stored and retrieved with the prefix
- *  - clear() with prefix: only prefixed keys are removed
+ *  - clear() with prefix: only prefixed keys are removed via cursor-based SCAN
  *  - clear() without prefix: full flushdb is called
  *  - Parse-error resilience: malformed JSON stored in Redis returns null
  *  - Constructor accepts both a URL string and an existing Redis instance
@@ -154,9 +154,20 @@ describe("RedisCacheStore", () => {
       expect(await redis.get(`${PREFIX}:key`)).toBeNull();
     });
 
-    // ── clear (with prefix → keys + del) ────────────────────────────────
+    // ── clear (with prefix → scan + del) ────────────────────────────────
 
     describe("clear() with prefix", () => {
+      it("uses SCAN (not KEYS) to iterate matching keys", async () => {
+        // SCAN must be used instead of the blocking KEYS command
+        const scanSpy = jest.spyOn(redis, "scan");
+        await redis.set(`${PREFIX}:x`, "1");
+
+        await store.clear();
+
+        // At least one SCAN call must have been made
+        expect(scanSpy).toHaveBeenCalled();
+      });
+
       it("removes only keys matching the prefix pattern", async () => {
         // Populate both prefixed and non-prefixed keys
         await redis.set(`${PREFIX}:x`, "1");

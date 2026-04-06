@@ -11,7 +11,8 @@
  *  - Cache hit: original method NOT called on second invocation
  *  - Cache miss: original method called and result persisted on first call
  *  - Key template interpolation: "user:{0}" with arg "42" → "user:42"
- *  - Optional TTL forwarded to the store
+ *  - Optional TTL forwarded to the store (value wrapped in envelope)
+ *  - Null return value is correctly cached (not treated as a permanent miss)
  *  - Works on async methods
  *  - Works on sync methods
  */
@@ -149,8 +150,35 @@ describe("@Cacheable decorator", () => {
     }
 
     await new DataService().fetch();
-    // The explicit 60-second TTL must have been passed to set()
-    expect(setSpy).toHaveBeenCalledWith("data-key", "data", 60);
+    // The value is wrapped in an envelope before being passed to set();
+    // the explicit 60-second TTL must be forwarded unchanged.
+    expect(setSpy).toHaveBeenCalledWith("data-key", { __v: "data" }, 60);
+  });
+
+  // ── Null return value ──────────────────────────────────────────────────────
+
+  it("correctly caches a null return value (does not re-call the method on the next invocation)", async () => {
+    // Methods that return null are a real edge case: without the internal
+    // envelope, null from get() looks identical to a cache miss, so the
+    // original method would be called on every invocation.
+    const impl = jest.fn().mockResolvedValue(null);
+
+    class UserService {
+      @Cacheable("user:null-case")
+      async findDeleted() {
+        return impl();
+      }
+    }
+
+    const svc = new UserService();
+    const first = await svc.findDeleted(); // miss — caches null
+    const second = await svc.findDeleted(); // must be a hit, NOT a miss
+
+    // The original method should only have been called once
+    expect(impl).toHaveBeenCalledTimes(1);
+    // Both calls must return null
+    expect(first).toBeNull();
+    expect(second).toBeNull();
   });
 
   // ── Sync method support ───────────────────────────────────────────────────
