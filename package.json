@@ -1,6 +1,6 @@
 {
   "name": "@ciscode/cache-kit",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "CacheKit backend module for reusable caching utilities and integrations.",
   "author": "CisCode",
   "publishConfig": {
@@ -18,6 +18,12 @@
   ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
   "engines": {
     "node": ">=20"
   },
