@@ -1,6 +1,6 @@
 {
   "name": "@ciscode/cachekit",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "CacheKit backend module for reusable caching utilities and integrations.",
   "author": "CisCode",
   "publishConfig": {
