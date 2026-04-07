@@ -30,6 +30,9 @@
       "@config/*": ["src/config/*"],
       "@filters/*": ["src/filters/*"],
       "@middleware/*": ["src/middleware/*"],
+      "@utils/*": ["src/utils/*"],
+      "@ports/*": ["src/ports/*"],
+      "@adapters/*": ["src/adapters/*"],
       "@utils/*": ["src/utils/*"]
     }
   },
