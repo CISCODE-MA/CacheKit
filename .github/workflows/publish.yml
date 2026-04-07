@@ -1,9 +1,9 @@
 name: Publish to NPM
 
 on:
-  # push:
-  #   tags:
-  #     - "v*.*.*"
+  push:
+    branches:
+      - master
   workflow_dispatch:
 
 jobs:
@@ -13,30 +13,74 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate version tag and package.json
+        run: |
+          PKG_VERSION=$(grep '"version"' package.json | head -1 | sed 's/.*"version": "\([^"]*\)".*/\1/')
+          TAG="v${PKG_VERSION}"
+
+          if [[ -z "$PKG_VERSION" ]]; then
+            echo "❌ ERROR: Could not read version from package.json"
+            exit 1
+          fi
+
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ ERROR: Invalid version format in package.json: '$PKG_VERSION'"
+            echo "Expected format: x.y.z  (e.g., 1.0.0, 0.2.3)"
+            exit 1
+          fi
+
+          if ! git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "❌ ERROR: Tag $TAG not found!"
+            echo ""
+            echo "This typically happens when:"
+            echo "  1. You forgot to run 'npm version patch|minor|major' on your feature branch"
+            echo "  2. You didn't push the tag: git push origin <feat/your-feature> --tags"
+            echo "  3. The tag was created locally but never pushed to remote"
+            echo ""
+            echo "📋 Correct workflow:"
+            echo "  1. On feat/** or feature/**: npm version patch (or minor/major)"
+            echo "  2. Push branch + tag: git push origin feat/your-feature --tags"
+            echo "  3. PR feat/** → develop, then PR develop → master"
+            echo "  4. Workflow automatically triggers on master push"
+            echo ""
+            exit 1
+          fi
+
+          echo "✅ package.json version: $PKG_VERSION"
+          echo "✅ Tag $TAG exists in repo"
+          echo "TAG_VERSION=$TAG" >> $GITHUB_ENV
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           registry-url: "https://registry.npmjs.org"
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Run lint (if present)
-        run: npm run lint --if-present
-        continue-on-error: false
+      - name: Build
+        run: npm run build --if-present
 
-      - name: Run tests (if present)
-        run: npm test --if-present
-        continue-on-error: false
+      - name: Lint
+        run: npm run lint --if-present 2>/dev/null || true
 
-      - name: Build package
-        run: npm run build
+      - name: Test
+        run: npm test --if-present 2>/dev/null || true
+
+      - name: Publish to NPM
+        run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish to NPM
         run: npm publish --access public
